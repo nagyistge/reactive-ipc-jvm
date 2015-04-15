@@ -37,7 +37,7 @@ class Netty4ReadPublisher implements Publisher<ByteBuf> {
 	boolean handleData(Object message) {
 		if (message instanceof ByteBuf) {
 			this.subscriber.onNext((ByteBuf) message);
-			if (this.requested.decrementAndGet() > 0) {
+			if (this.requested.get() != Long.MAX_VALUE && this.requested.decrementAndGet() > 0) {
 				this.channel.read();
 			}
 			return true;
@@ -71,6 +71,7 @@ class Netty4ReadPublisher implements Publisher<ByteBuf> {
 			}
 			if (n == Long.MAX_VALUE) {
 				requested.set(Long.MAX_VALUE);
+				channel.config().setAutoRead(true);
 			}
 			else {
 				requested.addAndGet(n);
